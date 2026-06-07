@@ -2,6 +2,7 @@
 import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { useAuthStore } from '../stores/authStore';
+import logo from '../assets/logo.png';
 
 const router = useRouter();
 const authStore = useAuthStore();
@@ -47,8 +48,8 @@ const handleLogout = () => {
         <!-- Logo -->
         <div class="flex items-center">
           <router-link :to="{ name: 'Home' }" class="flex items-center gap-2 group">
-            <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-brand-600 to-purple-600 flex items-center justify-center shadow-lg shadow-brand-500/20 group-hover:rotate-12 transition-transform duration-300">
-              <span class="text-white font-extrabold text-lg">5</span>
+            <div class="w-9 h-9 rounded-xl bg-slate-900 flex items-center justify-center shadow-lg shadow-brand-500/20 group-hover:rotate-12 transition-transform duration-300 overflow-hidden">
+              <img :src="logo" alt="5Lance" class="w-7 h-7 object-contain" />
             </div>
             <span class="text-xl font-bold tracking-tight bg-gradient-to-r from-brand-600 to-purple-600 bg-clip-text text-transparent">5Lance</span>
           </router-link>

@@ -4,6 +4,7 @@ import { useRouter } from 'vue-router';
 import { useAuthStore } from '../stores/authStore';
 import FormInput from '../components/FormInput.vue';
 import Button from '../components/Button.vue';
+import logo from '../assets/logo.png';
 
 const router = useRouter();
 const authStore = useAuthStore();
@@ -68,9 +69,7 @@ const handleRegister = async () => {
       <div class="space-y-6 relative z-10">
         <!-- Logo Header -->
         <div class="text-center space-y-2">
-          <div class="inline-flex w-10 h-10 rounded-xl bg-gradient-to-tr from-brand-600 to-purple-600 items-center justify-center shadow-md shadow-brand-500/15 mb-2">
-            <span class="text-white font-extrabold text-lg">5</span>
-          </div>
+          <img :src="logo" alt="5Lance" class="inline-flex w-10 h-10 mb-2" />
           <h1 class="text-2xl font-extrabold text-slate-900 dark:text-white">Create Your Account</h1>
           <p class="text-xs font-semibold text-slate-500 dark:text-slate-400">Join a network of professional developers and recruiters.</p>
         </div>

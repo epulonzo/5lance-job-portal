@@ -1,6 +1,7 @@
 <script setup>
 import { ref, onMounted, onUnmounted } from 'vue';
 import Navbar from '../components/Navbar.vue';
+import logo from '../assets/logo.png';
 
 const toast = ref({
   show: false,
@@ -67,9 +68,7 @@ onUnmounted(() => {
           <!-- Col 1: Brand -->
           <div class="space-y-4 md:col-span-2">
             <div class="flex items-center gap-2">
-              <div class="w-8 h-8 rounded-lg bg-gradient-to-tr from-brand-600 to-purple-600 flex items-center justify-center shadow-md shadow-brand-500/10">
-                <span class="text-white font-extrabold text-base">5</span>
-              </div>
+              <img :src="logo" alt="5Lance" class="w-8 h-8" />
               <span class="text-lg font-bold tracking-tight text-slate-800 dark:text-white">5Lance</span>
             </div>
             <p class="text-sm text-slate-500 dark:text-slate-400 max-w-sm">

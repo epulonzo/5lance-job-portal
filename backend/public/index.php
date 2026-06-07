@@ -1,0 +1,80 @@
+<?php
+
+declare(strict_types=1);
+
+use App\Controllers\ApplicationController;
+use App\Controllers\JobController;
+use App\Helpers\Responder;
+use App\Middleware\JwtAuthMiddleware;
+use Psr\Http\Message\ResponseInterface as Response;
+use Psr\Http\Message\ServerRequestInterface as Request;
+use Slim\Factory\AppFactory;
+use Slim\Routing\RouteCollectorProxy;
+
+require __DIR__ . '/../vendor/autoload.php';
+
+$dotenv = Dotenv\Dotenv::createImmutable(__DIR__ . '/..');
+$dotenv->safeLoad();
+
+$app = AppFactory::create();
+
+$app->addBodyParsingMiddleware();
+$app->addRoutingMiddleware();
+
+// CORS — allow the Vue SPA to call this API from a different origin
+$app->add(function (Request $request, $handler): Response {
+    $response = $handler->handle($request);
+    $origin = $_ENV['CORS_ORIGIN'] ?? '*';
+
+    return $response
+        ->withHeader('Access-Control-Allow-Origin', $origin)
+        ->withHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization')
+        ->withHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+});
+
+$app->options('/{routes:.+}', function (Request $request, Response $response) {
+    return $response;
+});
+
+$errorMiddleware = $app->addErrorMiddleware(
+    (bool) ($_ENV['APP_ENV'] ?? 'development') === 'development',
+    true,
+    true
+);
+$errorMiddleware->setDefaultErrorHandler(function (
+    Request $request,
+    Throwable $exception
+) use ($app) {
+    $response = $app->getResponseFactory()->createResponse();
+    $status = $exception instanceof \Slim\Exception\HttpException ? $exception->getCode() : 500;
+
+    return Responder::error($response, $exception->getMessage(), $status ?: 500);
+});
+
+$app->get('/', function (Request $request, Response $response) {
+    return Responder::json($response, ['message' => '5Lance API is running.']);
+});
+
+$app->group('/api', function (RouteCollectorProxy $group) {
+    // Jobs
+    $group->get('/jobs', [JobController::class, 'index']);
+    $group->get('/jobs/{id}', [JobController::class, 'show']);
+    $group->post('/jobs', [JobController::class, 'create'])
+        ->add(new JwtAuthMiddleware(['client']));
+    $group->put('/jobs/{id}', [JobController::class, 'update'])
+        ->add(new JwtAuthMiddleware(['client']));
+    $group->delete('/jobs/{id}', [JobController::class, 'delete'])
+        ->add(new JwtAuthMiddleware(['client', 'admin']));
+
+    // Applications
+    $group->get('/jobs/{id}/applications', [ApplicationController::class, 'indexForJob'])
+        ->add(new JwtAuthMiddleware(['client']));
+    $group->post('/jobs/{id}/applications', [ApplicationController::class, 'create'])
+        ->add(new JwtAuthMiddleware(['freelancer']));
+    $group->put('/applications/{id}', [ApplicationController::class, 'updateStatus'])
+        ->add(new JwtAuthMiddleware(['client']));
+    $group->delete('/applications/{id}', [ApplicationController::class, 'withdraw'])
+        ->add(new JwtAuthMiddleware(['freelancer']));
+});
+
+$app->run();
