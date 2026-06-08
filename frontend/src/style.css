@@ -29,7 +29,7 @@
     font-family: var(--font-sans);
   }
   
-  body.dark {
+  html.dark body {
     @apply bg-slate-950 text-slate-100;
   }
   
@@ -47,7 +47,7 @@
   border: 1px solid rgba(255, 255, 255, 0.3);
 }
 
-.dark .glass {
+html.dark .glass {
   background: rgba(15, 23, 42, 0.6);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
