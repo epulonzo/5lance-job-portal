@@ -7,10 +7,19 @@ const delay = (ms = 500) => new Promise(resolve => setTimeout(resolve, ms));
 const JOBS_KEY = '5lance_jobs';
 const APPLICATIONS_KEY = '5lance_applications';
 const USERS_KEY = '5lance_users';
+const SEED_VERSION_KEY = '5lance_seed_version';
 
-// Initialize data if not present
+// Bump this version whenever dummyJobs.js is updated to force a re-seed
+const CURRENT_SEED_VERSION = '2';
+
+// Initialize data if not present (or if seed version changed)
 const initStorage = () => {
-  if (!localStorage.getItem(JOBS_KEY)) {
+  const storedVersion = localStorage.getItem(SEED_VERSION_KEY);
+  if (storedVersion !== CURRENT_SEED_VERSION) {
+    // Seed version changed — reset jobs to latest dummy data
+    localStorage.setItem(JOBS_KEY, JSON.stringify(dummyJobs));
+    localStorage.setItem(SEED_VERSION_KEY, CURRENT_SEED_VERSION);
+  } else if (!localStorage.getItem(JOBS_KEY)) {
     localStorage.setItem(JOBS_KEY, JSON.stringify(dummyJobs));
   }
   if (!localStorage.getItem(APPLICATIONS_KEY)) {
