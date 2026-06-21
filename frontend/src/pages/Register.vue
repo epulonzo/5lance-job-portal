@@ -146,7 +146,7 @@ const handleRegister = async () => {
         <!-- Footnote link -->
         <p class="text-xs font-semibold text-slate-400 text-center">
           Already have an account? 
-          <router-link :to="{ name: 'Login' }" class="text-brand-600 hover:underline dark:text-brand-400">Sign In</router-link>
+          <router-link :to="{ name: 'Login' }" class="text-brand-600 hover:underline dark:text-brand-400">Log In</router-link>
         </p>
       </div>
     </div>

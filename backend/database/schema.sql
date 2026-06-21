@@ -14,6 +14,9 @@ CREATE TABLE users (
     email         VARCHAR(150) NOT NULL UNIQUE,
     password_hash VARCHAR(255) NOT NULL,
     role          ENUM('freelancer', 'client', 'admin') NOT NULL,
+    title         VARCHAR(150) NULL,
+    location      VARCHAR(100) NULL,
+    resume_url    VARCHAR(255) NULL,
     bio           TEXT NULL,
     skills        TEXT NULL,
     created_at    TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
@@ -39,6 +42,7 @@ CREATE TABLE applications (
     cover_letter   TEXT NOT NULL,
     proposed_rate  DECIMAL(10, 2) NULL,
     status         ENUM('pending', 'accepted', 'rejected') NOT NULL DEFAULT 'pending',
+    resume_path    VARCHAR(255) NULL,
     applied_at     TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT fk_applications_job FOREIGN KEY (job_id) REFERENCES jobs(job_id) ON DELETE CASCADE,
     CONSTRAINT fk_applications_freelancer FOREIGN KEY (freelancer_id) REFERENCES users(user_id) ON DELETE CASCADE,

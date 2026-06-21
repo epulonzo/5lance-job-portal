@@ -10,6 +10,38 @@ const applications = ref([]);
 const jobs = ref([]);
 const loading = ref(true);
 
+// Candidate Profile Modal state
+const selectedCandidate = ref(null);
+const isProfileModalOpen = ref(false);
+const modalLoading = ref(false);
+
+const handleViewProfile = async (freelancerId) => {
+  if (!freelancerId) {
+    window.toast?.('Invalid candidate ID.', 'error');
+    return;
+  }
+  
+  modalLoading.value = true;
+  selectedCandidate.value = null;
+  isProfileModalOpen.value = true;
+  
+  try {
+    const profile = await api.getUserProfile(freelancerId);
+    selectedCandidate.value = profile;
+  } catch (error) {
+    console.error('Failed to load candidate profile:', error);
+    window.toast?.('Failed to load candidate profile.', 'error');
+    isProfileModalOpen.value = false;
+  } finally {
+    modalLoading.value = false;
+  }
+};
+
+const closeProfileModal = () => {
+  isProfileModalOpen.value = false;
+  selectedCandidate.value = null;
+};
+
 // Job Form Reactive State
 const jobForm = reactive({
   title: '',
@@ -241,10 +273,21 @@ const getStatusBadgeClass = (status) => {
               <!-- Candidate Title Header -->
               <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
-                  <h3 class="text-lg font-bold text-slate-900 dark:text-white">
-                    {{ app.candidateName }}
-                  </h3>
-                  <p class="text-xs font-semibold text-slate-500">
+                  <div class="flex items-center gap-2.5 flex-wrap">
+                    <h3 class="text-lg font-bold text-slate-900 dark:text-white">
+                      {{ app.candidateName }}
+                    </h3>
+                    <button
+                      @click="() => handleViewProfile(app.freelancer_id)"
+                      class="px-2.5 py-1 text-xs font-bold text-brand-600 dark:text-brand-400 hover:text-white hover:bg-brand-600 dark:hover:bg-brand-500 rounded-xl bg-brand-500/10 transition-all cursor-pointer inline-flex items-center gap-1"
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                      </svg>
+                      View Profile
+                    </button>
+                  </div>
+                  <p class="text-xs font-semibold text-slate-500 mt-1">
                     Applied for: <span class="text-brand-600 dark:text-brand-400">{{ app.jobTitle }}</span> ({{ app.company }}) &bull; Submitted: {{ app.date }}
                   </p>
                 </div>
@@ -475,9 +518,126 @@ const getStatusBadgeClass = (status) => {
                 </tbody>
               </table>
             </div>
-          </div>
         </div>
       </div>
     </div>
+
+    <!-- Candidate Profile Modal -->
+    <transition
+      enter-active-class="transition duration-200 ease-out"
+      enter-from-class="opacity-0"
+      enter-to-class="opacity-100"
+      leave-active-class="transition duration-150 ease-in"
+      leave-from-class="opacity-100"
+      leave-to-class="opacity-0"
+    >
+      <div v-if="isProfileModalOpen" class="fixed inset-0 z-50 flex items-center justify-center p-4">
+        <!-- Backdrop -->
+        <div class="absolute inset-0 bg-slate-955/60 dark:bg-slate-950/60 backdrop-blur-sm" @click="closeProfileModal" />
+        
+        <!-- Card -->
+        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl w-full max-w-2xl p-6 sm:p-8 relative z-10 shadow-2xl text-left space-y-6 max-h-[90vh] overflow-y-auto">
+          <!-- Loading State inside Modal -->
+          <div v-if="modalLoading" class="py-12 flex flex-col items-center justify-center gap-4">
+            <div class="w-10 h-10 border-4 border-brand-500 border-t-transparent rounded-full animate-spin" />
+            <p class="text-xs font-bold text-slate-500 dark:text-slate-400">Loading candidate profile...</p>
+          </div>
+
+          <!-- Loaded Profile -->
+          <div v-else-if="selectedCandidate" class="space-y-6">
+            <!-- Header section -->
+            <div class="flex items-start justify-between gap-4">
+              <div class="flex items-center gap-4">
+                <div class="w-16 h-16 rounded-2xl bg-gradient-to-tr from-brand-500 to-purple-500 flex items-center justify-center text-white font-extrabold text-xl shadow-md uppercase">
+                  {{ selectedCandidate.name.split(' ').map(n => n[0]).join('').substring(0, 2) }}
+                </div>
+                <div class="space-y-1">
+                  <h3 class="text-2xl font-black text-slate-900 dark:text-white">{{ selectedCandidate.name }}</h3>
+                  <p class="text-sm font-bold text-brand-600 dark:text-brand-400">{{ selectedCandidate.title || 'Professional Candidate' }}</p>
+                  <div class="flex items-center gap-2 text-xs text-slate-400 font-semibold mt-1">
+                    <span v-if="selectedCandidate.location" class="flex items-center gap-1">
+                      📍 {{ selectedCandidate.location }}
+                    </span>
+                    <span>&bull;</span>
+                    <a :href="'mailto:' + selectedCandidate.email" class="hover:underline flex items-center gap-1 text-slate-500 dark:text-slate-350">
+                      ✉️ {{ selectedCandidate.email }}
+                    </a>
+                  </div>
+                </div>
+              </div>
+              
+              <!-- Close button -->
+              <button
+                @click="closeProfileModal"
+                class="w-9 h-9 flex items-center justify-center rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-500 dark:text-slate-400 cursor-pointer transition-all"
+                aria-label="Close modal"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                  <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
+                </svg>
+              </button>
+            </div>
+
+            <!-- Professional Summary / Bio -->
+            <div class="space-y-2">
+              <h4 class="text-xs font-bold uppercase text-slate-400 dark:text-slate-500 tracking-wider">Professional Bio</h4>
+              <p class="text-sm text-slate-600 dark:text-slate-300 leading-relaxed whitespace-pre-line bg-slate-50 dark:bg-slate-950/40 border border-slate-100 dark:border-slate-850 p-4 rounded-2xl">
+                {{ selectedCandidate.bio || 'No biography details provided.' }}
+              </p>
+            </div>
+
+            <!-- Skills -->
+            <div class="space-y-3">
+              <h4 class="text-xs font-bold uppercase text-slate-400 dark:text-slate-500 tracking-wider">Skills & Expertise</h4>
+              <div class="flex flex-wrap gap-2">
+                <span
+                  v-if="selectedCandidate.skills?.length === 0"
+                  class="text-xs font-semibold text-slate-400"
+                >
+                  No skills listed.
+                </span>
+                <span
+                  v-else
+                  v-for="skill in selectedCandidate.skills"
+                  :key="skill"
+                  class="px-3 py-1.5 text-xs rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-350 font-bold"
+                >
+                  {{ skill }}
+                </span>
+              </div>
+            </div>
+
+            <!-- Resume Download Section -->
+            <div class="pt-4 border-t border-slate-150 dark:border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-4">
+              <div class="flex items-center gap-3">
+                <div class="p-3 bg-red-500/10 text-red-500 rounded-xl">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                  </svg>
+                </div>
+                <div class="text-left">
+                  <p class="text-sm font-bold text-slate-800 dark:text-slate-200">Curriculum Vitae / Resume</p>
+                  <p class="text-xs text-slate-400 font-semibold">Attached PDF document for review</p>
+                </div>
+              </div>
+              
+              <a
+                v-if="selectedCandidate.resumeUrl"
+                :href="selectedCandidate.resumeUrl"
+                target="_blank"
+                class="px-5 py-2.5 bg-brand-600 hover:bg-brand-700 text-white font-bold text-xs rounded-xl transition-all shadow-md shadow-brand-500/10 flex items-center gap-1.5"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                </svg>
+                Open & Download PDF
+              </a>
+              <span v-else class="text-xs font-bold text-slate-400">No resume PDF uploaded.</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </transition>
   </div>
+</div>
 </template>

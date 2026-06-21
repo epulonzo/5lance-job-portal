@@ -48,13 +48,13 @@ const handleLogin = async () => {
 
 // Autofill Helpers
 const autofillCandidate = () => {
-  email.value = 'jane@example.com';
-  password.value = 'password123';
+  email.value = 'adam@5lance.com';
+  password.value = 'Password123';
 };
 
 const autofillRecruiter = () => {
   email.value = 'admin@5lance.com';
-  password.value = 'password123';
+  password.value = 'Password123';
 };
 </script>
 
@@ -69,7 +69,7 @@ const autofillRecruiter = () => {
         <!-- Logo Header -->
         <div class="text-center space-y-2">
           <img :src="logo" alt="5Lance" class="inline-flex w-10 h-10 mb-2" />
-          <h1 class="text-2xl font-extrabold text-slate-900 dark:text-white">Sign In to 5Lance</h1>
+          <h1 class="text-2xl font-extrabold text-slate-900 dark:text-white">Log In to 5Lance</h1>
           <p class="text-xs font-semibold text-slate-500 dark:text-slate-400">Discover top developers & premium tech opportunities.</p>
         </div>
 
@@ -106,7 +106,7 @@ const autofillRecruiter = () => {
             class="w-full"
             :loading="loading"
           >
-            Sign In
+            Log In
           </Button>
         </form>
 

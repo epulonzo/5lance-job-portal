@@ -76,7 +76,8 @@ const handleLogout = () => {
           >
             <!-- Sun Icon -->
             <svg v-if="isDark" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364-6.364l-.707.707M6.343 17.657l-.707.707m2.828-9.9a5 5 0 11-7.07 7.07l.707-.707m1.414-1.414l-.707-.707" />
+              <circle cx="12" cy="12" r="4" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41" />
             </svg>
             <!-- Moon Icon -->
             <svg v-else xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -90,7 +91,7 @@ const handleLogout = () => {
               :to="{ name: 'Login' }"
               class="text-sm font-semibold text-slate-700 dark:text-slate-200 hover:text-brand-600 dark:hover:text-brand-400 transition-colors"
             >
-              Sign In
+              Log In
             </router-link>
             <router-link
               :to="{ name: 'Register' }"
@@ -128,7 +129,7 @@ const handleLogout = () => {
                 class="absolute right-0 mt-2 w-48 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xl py-1 z-50 text-left"
               >
                 <div class="px-4 py-2.5 border-b border-slate-100 dark:border-slate-800">
-                  <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Signed in as</p>
+                  <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Logged in as</p>
                   <p class="text-sm font-bold text-slate-800 dark:text-slate-200 truncate">{{ authStore.user?.name }}</p>
                 </div>
 
@@ -167,7 +168,7 @@ const handleLogout = () => {
                   @click="handleLogout"
                   class="w-full text-left block px-4 py-2 text-sm text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/20 font-semibold cursor-pointer"
                 >
-                  Sign Out
+                  Log Out
                 </button>
               </div>
             </transition>
@@ -183,7 +184,8 @@ const handleLogout = () => {
             aria-label="Toggle Theme"
           >
             <svg v-if="isDark" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364-6.364l-.707.707M6.343 17.657l-.707.707m2.828-9.9a5 5 0 11-7.07 7.07l.707-.707m1.414-1.414l-.707-.707" />
+              <circle cx="12" cy="12" r="4" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41" />
             </svg>
             <svg v-else xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
@@ -258,7 +260,7 @@ const handleLogout = () => {
               @click="handleLogout"
               class="w-full text-left block px-3 py-2.5 rounded-xl text-base font-semibold text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/20"
             >
-              Sign Out
+              Log Out
             </button>
           </template>
 
@@ -268,7 +270,7 @@ const handleLogout = () => {
               class="flex items-center justify-center px-4 py-2.5 border border-slate-200 dark:border-slate-800 rounded-xl text-sm font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-850"
               @click="isMobileMenuOpen = false"
             >
-              Sign In
+              Log In
             </router-link>
             <router-link
               :to="{ name: 'Register' }"

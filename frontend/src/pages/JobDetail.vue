@@ -17,9 +17,23 @@ const hasApplied = ref(false);
 
 // Form Fields
 const coverLetter = ref('');
-const resumeUrl = ref('');
 const submitLoading = ref(false);
 const submitError = ref('');
+
+// Computed check for profile completeness
+const isProfileComplete = computed(() => {
+  const user = authStore.user;
+  if (!user) return false;
+  if (user.role !== 'candidate') return true; // Recruiters/Admins bypass this
+  return (
+    user.name?.trim() &&
+    user.title?.trim() &&
+    user.location?.trim() &&
+    user.bio?.trim() &&
+    user.resumeUrl?.trim() &&
+    user.skills?.length > 0
+  );
+});
 
 const loadJob = async () => {
   loading.value = true;
@@ -72,7 +86,6 @@ const handleApplySubmit = async () => {
       authStore.user.email,
       {
         coverLetter: coverLetter.value,
-        resumeUrl: resumeUrl.value || 'Provided on profile',
         candidateName: authStore.user.name
       }
     );
@@ -133,23 +146,46 @@ const handleApplySubmit = async () => {
           </div>
 
           <!-- CTAs -->
-          <div class="flex items-center gap-3 shrink-0">
-            <Button
-              v-if="hasApplied"
-              variant="secondary"
-              disabled
-              class="w-full sm:w-auto"
-            >
-              Applied
-            </Button>
-            <Button
-              v-else
-              variant="primary"
-              class="w-full sm:w-auto"
-              @click="handleApplyClick"
-            >
-              {{ authStore.isAuthenticated ? 'Apply Now' : 'Sign In to Apply' }}
-            </Button>
+          <div class="flex flex-col sm:flex-row sm:items-center gap-3 shrink-0">
+            <template v-if="authStore.isAuthenticated && authStore.user.role === 'candidate'">
+              <div v-if="!isProfileComplete" class="flex flex-col items-end gap-1">
+                <span class="text-[10px] font-bold text-amber-500 uppercase tracking-wide">Profile Incomplete</span>
+                <router-link
+                  :to="{ name: 'Profile' }"
+                  class="inline-flex items-center justify-center px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white font-bold text-xs rounded-xl transition-all shadow-md shadow-amber-500/10 cursor-pointer"
+                >
+                  Complete Profile to Apply
+                </router-link>
+              </div>
+              <Button
+                v-else-if="hasApplied"
+                variant="secondary"
+                disabled
+                class="w-full sm:w-auto"
+              >
+                Applied
+              </Button>
+              <Button
+                v-else
+                variant="primary"
+                class="w-full sm:w-auto"
+                @click="handleApplyClick"
+              >
+                Apply Now
+              </Button>
+            </template>
+            <template v-else-if="authStore.isAuthenticated && authStore.user.role !== 'candidate'">
+              <span class="text-xs font-bold text-slate-400">Recruiter View</span>
+            </template>
+            <template v-else>
+              <Button
+                variant="primary"
+                class="w-full sm:w-auto"
+                @click="handleApplyClick"
+              >
+                Log In to Apply
+              </Button>
+            </template>
           </div>
         </div>
 
@@ -178,6 +214,32 @@ const handleApplySubmit = async () => {
       <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
         <!-- Details Column -->
         <div class="lg:col-span-2 space-y-6">
+          <!-- Incomplete Profile Warning Alert -->
+          <div
+            v-if="authStore.isAuthenticated && authStore.user.role === 'candidate' && !isProfileComplete"
+            class="p-5 bg-amber-500/10 dark:bg-amber-500/5 border border-amber-500/20 rounded-2xl flex items-start gap-4 text-left"
+          >
+            <div class="p-2.5 rounded-xl bg-amber-500/15 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5 animate-pulse">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+              </svg>
+            </div>
+            <div class="space-y-1">
+              <h4 class="text-sm font-extrabold text-amber-800 dark:text-amber-400">Complete Your Profile Settings First</h4>
+              <p class="text-xs font-semibold text-amber-700/90 dark:text-amber-500/80 leading-relaxed">
+                Before applying for jobs, you must complete your profile. Please make sure to fill in your <strong>Headline</strong>, <strong>Location</strong>, <strong>Bio</strong>, <strong>Skills</strong>, and <strong>Resume Link</strong> in your profile settings.
+              </p>
+              <div class="pt-2">
+                <router-link
+                  :to="{ name: 'Profile' }"
+                  class="inline-flex items-center gap-1 text-xs font-bold text-amber-700 dark:text-amber-400 hover:underline"
+                >
+                  Go to Profile Settings &rarr;
+                </router-link>
+              </div>
+            </div>
+          </div>
+
           <!-- Description -->
           <section class="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800/80 rounded-2xl p-6 sm:p-8 shadow-sm space-y-4">
             <h2 class="text-xl font-bold text-slate-900 dark:text-white">Role Overview</h2>
@@ -258,26 +320,19 @@ const handleApplySubmit = async () => {
           <form @submit.prevent="handleApplySubmit" class="space-y-4">
             <!-- Cover Letter -->
             <div class="flex flex-col gap-1.5">
-              <label class="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Cover Letter / Message *</label>
+              <label class="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Cover Letter, Period & Notes *</label>
               <textarea
                 v-model="coverLetter"
                 rows="5"
-                placeholder="Introduce yourself and explain why you are a great fit for this role..."
+                placeholder="Introduce yourself, specify your available period, and share any related information..."
                 required
                 class="w-full px-4 py-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white rounded-xl transition-all outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 text-sm leading-relaxed"
               />
             </div>
 
-            <!-- Resume Link -->
-            <div class="flex flex-col gap-1.5">
-              <label class="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Resume Link (PDF/Google Drive)</label>
-              <input
-                v-model="resumeUrl"
-                type="url"
-                placeholder="https://myportfolio.com/my-resume.pdf"
-                class="w-full px-4 py-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white rounded-xl transition-all outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 text-sm"
-              />
-              <span class="text-[10px] text-slate-400 font-semibold">Or leave blank if your profile details suffice.</span>
+            <!-- Info Note -->
+            <div class="text-[11px] font-semibold text-slate-500 dark:text-slate-400 bg-slate-50 dark:bg-slate-950 border border-slate-100 dark:border-slate-850 rounded-xl p-3">
+              ℹ️ Your profile details (including your saved resume link and skills) will automatically be attached to this application.
             </div>
 
             <!-- Error Banner -->

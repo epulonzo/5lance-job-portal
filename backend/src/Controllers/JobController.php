@@ -36,10 +36,10 @@ class JobController
             $bindings['category'] = $params['category'];
         }
 
-        if (!empty($params['status'])) {
+        if (!empty($params['status']) && $params['status'] !== 'all') {
             $sql .= ' AND j.status = :status';
             $bindings['status'] = $params['status'];
-        } else {
+        } elseif (empty($params['status'])) {
             $sql .= " AND j.status = 'open'";
         }
 
@@ -105,8 +105,8 @@ class JobController
             'title'       => $data['title'],
             'description' => $data['description'],
             'category'    => $data['category'],
-            'budget'      => $data['budget'] ?? null,
-            'deadline'    => $data['deadline'] ?? null,
+            'budget'      => (!isset($data['budget']) || $data['budget'] === '') ? null : $data['budget'],
+            'deadline'    => (!isset($data['deadline']) || $data['deadline'] === '') ? null : $data['deadline'],
             'status'      => $data['status'] ?? 'open',
         ]);
 
@@ -155,8 +155,8 @@ class JobController
             'title'       => $data['title'],
             'description' => $data['description'],
             'category'    => $data['category'],
-            'budget'      => $data['budget'] ?? null,
-            'deadline'    => $data['deadline'] ?? null,
+            'budget'      => (!isset($data['budget']) || $data['budget'] === '') ? null : $data['budget'],
+            'deadline'    => (!isset($data['deadline']) || $data['deadline'] === '') ? null : $data['deadline'],
             'status'      => $data['status'] ?? $job['status'],
             'job_id'      => $jobId,
         ]);

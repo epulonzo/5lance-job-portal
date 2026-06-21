@@ -10,7 +10,7 @@ const name = ref('');
 const title = ref('');
 const bio = ref('');
 const location = ref('');
-const resumeUrl = ref('');
+const resumeFile = ref(null);
 const skillsInput = ref(''); // Comma separated string
 
 const loading = ref(false);
@@ -22,10 +22,13 @@ onMounted(() => {
     title.value = authStore.user.title || '';
     bio.value = authStore.user.bio || '';
     location.value = authStore.user.location || '';
-    resumeUrl.value = authStore.user.resumeUrl || '';
     skillsInput.value = authStore.user.skills ? authStore.user.skills.join(', ') : '';
   }
 });
+
+const handleResumeChange = (event) => {
+  resumeFile.value = event.target.files[0] || null;
+};
 
 const handleSaveProfile = async () => {
   loading.value = true;
@@ -41,7 +44,7 @@ const handleSaveProfile = async () => {
     title: title.value,
     bio: bio.value,
     location: location.value,
-    resumeUrl: resumeUrl.value,
+    resumeFile: resumeFile.value,
     skills: skillsArray
   };
 
@@ -103,13 +106,22 @@ const handleSaveProfile = async () => {
             placeholder="e.g. Remote / San Francisco, CA"
           />
 
-          <!-- Resume Link -->
-          <FormInput
-            v-model="resumeUrl"
-            label="Resume Link (PDF/Docs Link)"
-            placeholder="https://myportfolio.com/my-resume.pdf"
-            type="url"
-          />
+          <!-- Resume Upload -->
+          <div class="flex flex-col gap-1.5">
+            <label class="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Upload Resume (PDF only)</label>
+            <div v-if="authStore.user?.resumeUrl" class="p-3.5 bg-slate-50 dark:bg-slate-800/40 border border-slate-200/50 dark:border-slate-850 rounded-xl flex items-center justify-between text-xs font-semibold">
+              <span class="text-slate-500 dark:text-slate-400 flex items-center gap-1.5">
+                📄 Current: <a :href="authStore.user.resumeUrl" target="_blank" class="text-brand-600 dark:text-brand-400 hover:underline">View Uploaded Resume (PDF)</a>
+              </span>
+              <span class="text-[10px] text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 dark:bg-emerald-400/10 px-2 py-0.5 rounded-full font-bold">Uploaded</span>
+            </div>
+            <input
+              type="file"
+              accept=".pdf"
+              @change="handleResumeChange"
+              class="w-full px-4 py-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white rounded-xl transition-all outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 text-sm file:mr-4 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-brand-500/10 file:text-brand-600 dark:file:bg-brand-400/10 dark:file:text-brand-400 hover:file:bg-brand-500/20 cursor-pointer"
+            />
+          </div>
 
           <!-- Skills (Comma Separated) -->
           <FormInput

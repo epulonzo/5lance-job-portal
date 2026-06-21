@@ -20,6 +20,49 @@ class ApplicationController
         $this->db = Database::getConnection();
     }
 
+    /** GET /api/applications — list all relevant applications */
+    public function index(Request $request, Response $response): Response
+    {
+        $user = $request->getAttribute('jwt_user');
+        $role = $user['role'] ?? '';
+
+        if ($role === 'admin') {
+            $stmt = $this->db->prepare(
+                'SELECT a.*, j.title AS job_title, j.client_id, u.name AS freelancer_name, u.email AS freelancer_email, u.resume_url AS freelancer_resume_url, c.name AS client_name
+                 FROM applications a
+                 INNER JOIN jobs j ON j.job_id = a.job_id
+                 INNER JOIN users u ON u.user_id = a.freelancer_id
+                 INNER JOIN users c ON c.user_id = j.client_id
+                 ORDER BY a.applied_at DESC'
+            );
+            $stmt->execute();
+        } elseif ($role === 'freelancer') {
+            $stmt = $this->db->prepare(
+                'SELECT a.*, j.title AS job_title, j.client_id, u.name AS freelancer_name, u.email AS freelancer_email, u.resume_url AS freelancer_resume_url, c.name AS client_name
+                 FROM applications a
+                 INNER JOIN jobs j ON j.job_id = a.job_id
+                 INNER JOIN users u ON u.user_id = a.freelancer_id
+                 INNER JOIN users c ON c.user_id = j.client_id
+                 WHERE a.freelancer_id = :freelancer_id
+                 ORDER BY a.applied_at DESC'
+            );
+            $stmt->execute(['freelancer_id' => $user['user_id']]);
+        } else {
+            $stmt = $this->db->prepare(
+                'SELECT a.*, j.title AS job_title, j.client_id, u.name AS freelancer_name, u.email AS freelancer_email, u.resume_url AS freelancer_resume_url, c.name AS client_name
+                 FROM applications a
+                 INNER JOIN jobs j ON j.job_id = a.job_id
+                 INNER JOIN users u ON u.user_id = a.freelancer_id
+                 INNER JOIN users c ON c.user_id = j.client_id
+                 WHERE j.client_id = :client_id
+                 ORDER BY a.applied_at DESC'
+            );
+            $stmt->execute(['client_id' => $user['user_id']]);
+        }
+
+        return Responder::json($response, $stmt->fetchAll());
+    }
+
     /** GET /api/jobs/{id}/applications — list applications for a job (JWT Client, owner only) */
     public function indexForJob(Request $request, Response $response, array $args): Response
     {
@@ -36,7 +79,7 @@ class ApplicationController
         }
 
         $stmt = $this->db->prepare(
-            'SELECT a.*, u.name AS freelancer_name, u.email AS freelancer_email, u.skills AS freelancer_skills
+            'SELECT a.*, u.name AS freelancer_name, u.email AS freelancer_email, u.skills AS freelancer_skills, u.resume_url AS freelancer_resume_url
              FROM applications a
              INNER JOIN users u ON u.user_id = a.freelancer_id
              WHERE a.job_id = :job_id
@@ -92,7 +135,7 @@ class ApplicationController
             'job_id'        => $jobId,
             'freelancer_id' => $user['user_id'],
             'cover_letter'  => $data['cover_letter'],
-            'proposed_rate' => $data['proposed_rate'] ?? null,
+            'proposed_rate' => (!isset($data['proposed_rate']) || $data['proposed_rate'] === '') ? null : $data['proposed_rate'],
             'status'        => 'pending',
         ]);
 
