@@ -163,7 +163,7 @@ class ApplicationController
 
         $validator = (new Validator($data))
             ->required('status', 'Status')
-            ->in('status', ['pending', 'accepted', 'rejected']);
+            ->in('status', ['pending', 'accepted', 'offered', 'rejected']);
 
         if ($validator->fails()) {
             return Responder::error($response, 'Validation failed.', 422, $validator->errors());

@@ -115,8 +115,9 @@ const mapAppFromBackend = (app) => {
   if (!app) return null;
 
   const statusMapping = {
-    'pending': 'Applied',
+    'pending':  'Applied',
     'accepted': 'Interviewing',
+    'offered':  'Offered',
     'rejected': 'Declined'
   };
 
@@ -284,10 +285,10 @@ export const api = {
 
   async updateApplicationStatus(id, status) {
     const statusMapping = {
-      'Applied': 'pending',
+      'Applied':      'pending',
       'Interviewing': 'accepted',
-      'Offered': 'accepted',
-      'Declined': 'rejected'
+      'Offered':      'offered',
+      'Declined':     'rejected'
     };
     const backendStatus = statusMapping[status] || 'pending';
     const response = await apiClient.put(`/applications/${id}`, { status: backendStatus });

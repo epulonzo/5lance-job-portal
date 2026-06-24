@@ -41,7 +41,7 @@ CREATE TABLE applications (
     freelancer_id  INT NOT NULL,
     cover_letter   TEXT NOT NULL,
     proposed_rate  DECIMAL(10, 2) NULL,
-    status         ENUM('pending', 'accepted', 'rejected') NOT NULL DEFAULT 'pending',
+    status         ENUM('pending', 'accepted', 'offered', 'rejected') NOT NULL DEFAULT 'pending',
     resume_path    VARCHAR(255) NULL,
     applied_at     TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT fk_applications_job FOREIGN KEY (job_id) REFERENCES jobs(job_id) ON DELETE CASCADE,
