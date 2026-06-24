@@ -12,7 +12,7 @@ const authStore = useAuthStore();
 const name = ref('');
 const email = ref('');
 const password = ref('');
-const role = ref('candidate'); // candidate, admin
+const role = ref('candidate'); // candidate, recruiter
 
 const formErrors = ref({ name: '', email: '', password: '' });
 const generalError = ref('');
@@ -45,7 +45,7 @@ const handleRegister = async () => {
     window.toast?.(`Welcome, ${user.name}! Your account has been created.`, 'success');
     
     // Redirect
-    if (user.role === 'admin') {
+    if (user.role === 'admin' || user.role === 'recruiter') {
       router.push({ name: 'Admin' });
     } else {
       router.push({ name: 'Dashboard' });
@@ -89,9 +89,9 @@ const handleRegister = async () => {
               </button>
               <button
                 type="button"
-                @click="role = 'admin'"
+                @click="role = 'recruiter'"
                 class="flex-1 py-2 rounded-lg text-sm font-bold transition-all cursor-pointer"
-                :class="role === 'admin' ? 'bg-white dark:bg-slate-900 text-brand-600 dark:text-brand-400 shadow-sm' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700'"
+                :class="role === 'recruiter' ? 'bg-white dark:bg-slate-900 text-brand-600 dark:text-brand-400 shadow-sm' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700'"
               >
                 Recruiter (Hiring Talent)
               </button>

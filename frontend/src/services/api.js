@@ -146,9 +146,11 @@ const mapUserFromBackend = (user) => {
   if (!user) return null;
   let frontendRole = user.role;
   if (user.role === 'client') {
-    frontendRole = 'admin';
+    frontendRole = 'recruiter';
   } else if (user.role === 'freelancer') {
     frontendRole = 'candidate';
+  } else if (user.role === 'admin') {
+    frontendRole = 'admin';
   }
   
   const apiBase = import.meta.env.VITE_API_URL 
@@ -182,7 +184,7 @@ export const api = {
     const user = userJson ? JSON.parse(userJson) : null;
     
     let params = {};
-    if (user && (user.role === 'admin' || user.role === 'client')) {
+    if (user && (user.role === 'admin' || user.role === 'recruiter' || user.role === 'client')) {
       params.status = 'all';
     }
     
@@ -305,8 +307,10 @@ export const api = {
     let backendRole = role;
     if (role === 'candidate') {
       backendRole = 'freelancer';
-    } else if (role === 'admin') {
+    } else if (role === 'recruiter') {
       backendRole = 'client';
+    } else if (role === 'admin') {
+      backendRole = 'admin';
     }
     const response = await apiClient.post('/auth/register', { name, email, password, role: backendRole });
     return {
@@ -343,5 +347,15 @@ export const api = {
   async getUserProfile(id) {
     const response = await apiClient.get(`/users/${id}`);
     return mapUserFromBackend(response.data);
+  },
+
+  async getUsers() {
+    const response = await apiClient.get('/users');
+    return response.data;
+  },
+
+  async deactivateUser(id) {
+    const response = await apiClient.delete(`/users/${id}`);
+    return response.data;
   }
 };

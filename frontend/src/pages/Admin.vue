@@ -3,8 +3,10 @@ import { ref, onMounted, reactive } from 'vue';
 import { api } from '../services/api';
 import FormInput from '../components/FormInput.vue';
 import Button from '../components/Button.vue';
+import { useAuthStore } from '../stores/authStore';
 
-const activeTab = ref('applications'); // applications, post-job, manage-jobs
+const authStore = useAuthStore();
+const activeTab = ref('applications'); // applications, post-job, manage-jobs, manage-users
 
 const applications = ref([]);
 const jobs = ref([]);
@@ -60,15 +62,38 @@ const jobForm = reactive({
 const formError = ref('');
 const formLoading = ref(false);
 
+const users = ref([]);
+
 const loadAdminData = async () => {
   loading.value = true;
   try {
     applications.value = await api.getApplications();
-    jobs.value = await api.getJobs();
+    if (authStore.isAdmin) {
+      users.value = await api.getUsers();
+      jobs.value = await api.getJobs();
+    } else {
+      const allJobs = await api.getJobs();
+      jobs.value = allJobs.filter(j => String(j.client_id) === String(authStore.user.user_id));
+    }
   } catch (error) {
-    console.error('Failed to load admin dashboard data:', error);
+    console.error('Failed to load dashboard data:', error);
   } finally {
     loading.value = false;
+  }
+};
+
+const handleDeactivateUser = async (userId) => {
+  if (String(userId) === String(authStore.user.user_id)) {
+    window.toast?.("You cannot deactivate your own account.", "error");
+    return;
+  }
+  if (!confirm("Are you sure you want to deactivate and delete this user account? This will permanently remove their profile, jobs, and applications.")) return;
+  try {
+    await api.deactivateUser(userId);
+    users.value = users.value.filter(u => u.user_id !== userId);
+    window.toast?.("User account deactivated successfully.", "success");
+  } catch (error) {
+    window.toast?.("Failed to deactivate user.", "error");
   }
 };
 
@@ -188,12 +213,16 @@ const getStatusBadgeClass = (status) => {
     <!-- Header -->
     <div class="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800/80 rounded-3xl p-6 sm:p-8 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6 shadow-sm">
       <div class="flex items-center gap-4">
-        <div class="w-16 h-16 rounded-2xl bg-gradient-to-tr from-brand-650 to-purple-600 flex items-center justify-center text-white font-extrabold text-xl shadow-md">
-          RP
+        <div class="w-16 h-16 rounded-2xl bg-gradient-to-tr from-brand-650 to-purple-600 flex items-center justify-center text-white font-extrabold text-xl shadow-md animate-pulse-slow">
+          {{ authStore.isAdmin ? 'AD' : 'RP' }}
         </div>
         <div class="space-y-1">
-          <h1 class="text-2xl font-extrabold text-slate-900 dark:text-white">Recruiter Workspace</h1>
-          <p class="text-xs font-semibold text-slate-500 dark:text-slate-400">Post roles, evaluate candidates, and manage your pipeline.</p>
+          <h1 class="text-2xl font-extrabold text-slate-900 dark:text-white">
+            {{ authStore.isAdmin ? 'Admin Workspace' : 'Recruiter Workspace' }}
+          </h1>
+          <p class="text-xs font-semibold text-slate-500 dark:text-slate-400">
+            {{ authStore.isAdmin ? 'Monitor applications, moderate job listings, and manage system accounts.' : 'Post roles, evaluate candidates, and manage your pipeline.' }}
+          </p>
         </div>
       </div>
     </div>
@@ -230,6 +259,7 @@ const getStatusBadgeClass = (status) => {
           Evaluate Candidates
         </button>
         <button
+          v-if="!authStore.isAdmin"
           @click="activeTab = 'post-job'"
           class="pb-3 text-sm font-bold border-b-2 transition-all cursor-pointer"
           :class="activeTab === 'post-job' ? 'border-brand-500 text-brand-600 dark:text-brand-400' : 'border-transparent text-slate-500 hover:text-slate-700'"
@@ -242,6 +272,14 @@ const getStatusBadgeClass = (status) => {
           :class="activeTab === 'manage-jobs' ? 'border-brand-500 text-brand-600 dark:text-brand-400' : 'border-transparent text-slate-500 hover:text-slate-700'"
         >
           Manage Listings
+        </button>
+        <button
+          v-if="authStore.isAdmin"
+          @click="activeTab = 'manage-users'"
+          class="pb-3 text-sm font-bold border-b-2 transition-all cursor-pointer"
+          :class="activeTab === 'manage-users' ? 'border-brand-500 text-brand-600 dark:text-brand-400' : 'border-transparent text-slate-500 hover:text-slate-700'"
+        >
+          Manage Users
         </button>
       </div>
 
@@ -491,6 +529,7 @@ const getStatusBadgeClass = (status) => {
                 <thead class="bg-slate-50 dark:bg-slate-800/40">
                   <tr>
                     <th scope="col" class="px-6 py-3.5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">Job Title</th>
+                    <th v-if="authStore.isAdmin" scope="col" class="px-6 py-3.5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">Posted By</th>
                     <th scope="col" class="px-6 py-3.5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">Salary</th>
                     <th scope="col" class="px-6 py-3.5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">Type</th>
                     <th scope="col" class="px-6 py-3.5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">Actions</th>
@@ -504,6 +543,7 @@ const getStatusBadgeClass = (status) => {
                       </router-link>
                       <span v-if="job.featured" class="ml-2 px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wider bg-brand-500/10 text-brand-600 dark:text-brand-450 align-middle">Featured</span>
                     </td>
+                    <td v-if="authStore.isAdmin" class="px-6 py-4.5 whitespace-nowrap text-slate-450 text-sm font-semibold">{{ job.company }}</td>
                     <td class="px-6 py-4.5 whitespace-nowrap text-slate-400 text-sm font-medium">{{ job.salary }}</td>
                     <td class="px-6 py-4.5 whitespace-nowrap text-slate-400 text-sm font-medium">{{ job.type }}</td>
                     <td class="px-6 py-4.5 whitespace-nowrap">
@@ -518,8 +558,55 @@ const getStatusBadgeClass = (status) => {
                 </tbody>
               </table>
             </div>
+          </div>
         </div>
-      </div>
+
+        <!-- Tab 4: Manage Users (Admin Only) -->
+        <div v-if="activeTab === 'manage-users'" class="space-y-4">
+          <div v-if="users.length === 0" class="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800/80 rounded-2xl p-12 text-center text-slate-500 shadow-sm">
+            <h3 class="text-base font-bold text-slate-700 dark:text-slate-350">No users registered</h3>
+          </div>
+          <div v-else class="overflow-hidden bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800/80 rounded-2xl shadow-sm">
+            <div class="overflow-x-auto">
+              <table class="min-w-full divide-y divide-slate-100 dark:divide-slate-800/60">
+                <thead class="bg-slate-50 dark:bg-slate-800/40">
+                  <tr>
+                    <th scope="col" class="px-6 py-3.5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">Name</th>
+                    <th scope="col" class="px-6 py-3.5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">Email</th>
+                    <th scope="col" class="px-6 py-3.5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">Role</th>
+                    <th scope="col" class="px-6 py-3.5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">Title / Location</th>
+                    <th scope="col" class="px-6 py-3.5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">Actions</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100 dark:divide-slate-800/60 font-semibold text-slate-700 dark:text-slate-300">
+                  <tr v-for="u in users" :key="u.user_id" class="hover:bg-slate-50/50 dark:hover:bg-slate-800/20 transition-colors">
+                    <td class="px-6 py-4.5 whitespace-nowrap text-slate-900 dark:text-white font-bold">{{ u.name }}</td>
+                    <td class="px-6 py-4.5 whitespace-nowrap text-slate-400 text-sm font-medium">{{ u.email }}</td>
+                    <td class="px-6 py-4.5 whitespace-nowrap text-sm font-semibold">
+                      <span class="px-2 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-wider"
+                            :class="u.role === 'admin' ? 'bg-purple-500/10 text-purple-600 dark:text-purple-400' : (u.role === 'client' ? 'bg-blue-500/10 text-blue-600 dark:text-blue-400' : 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400')">
+                        {{ u.role === 'client' ? 'Recruiter' : (u.role === 'admin' ? 'Admin' : 'Candidate') }}
+                      </span>
+                    </td>
+                    <td class="px-6 py-4.5 whitespace-nowrap text-slate-400 text-sm font-medium">
+                      {{ u.title || 'N/A' }} <span v-if="u.location" class="text-slate-300">&bull; {{ u.location }}</span>
+                    </td>
+                    <td class="px-6 py-4.5 whitespace-nowrap">
+                      <button
+                        v-if="String(u.user_id) !== String(authStore.user.user_id)"
+                        @click="() => handleDeactivateUser(u.user_id)"
+                        class="px-2.5 py-1.5 text-xs font-bold text-rose-600 hover:bg-rose-500/10 hover:text-rose-500 rounded-lg cursor-pointer transition-all"
+                      >
+                        Deactivate
+                      </button>
+                      <span v-else class="text-xs text-slate-400 italic font-semibold">Current User</span>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
     </div>
 
     <!-- Candidate Profile Modal -->

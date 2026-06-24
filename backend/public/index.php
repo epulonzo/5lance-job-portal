@@ -77,6 +77,8 @@ $app->group('/api', function (RouteCollectorProxy $group) {
     $group->post('/auth/login', [AuthController::class, 'login']);
 
     // Users
+    $group->get('/users', [UserController::class, 'index'])
+        ->add(new JwtAuthMiddleware(['admin']));
     $group->get('/users/{id}', [UserController::class, 'show'])
         ->add(new JwtAuthMiddleware());
     $group->post('/users/{id}', [UserController::class, 'update'])

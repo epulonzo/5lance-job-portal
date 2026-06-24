@@ -36,7 +36,7 @@ const handleLogin = async () => {
     window.toast?.(`Welcome back, ${user.name}!`, 'success');
     
     // Redirect to guarded route or dashboard
-    const redirectPath = route.query.redirect || (user.role === 'admin' ? '/admin' : '/dashboard');
+    const redirectPath = route.query.redirect || ((user.role === 'admin' || user.role === 'recruiter') ? '/admin' : '/dashboard');
     router.push(redirectPath);
   } catch (error) {
     generalError.value = error.message || 'Login failed. Please check your credentials.';

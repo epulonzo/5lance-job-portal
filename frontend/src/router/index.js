@@ -73,6 +73,7 @@ router.beforeEach((to, from, next) => {
   const authStore = useAuthStore();
   const isAuthenticated = authStore.isAuthenticated;
   const isAdmin = authStore.isAdmin;
+  const isRecruiter = authStore.isRecruiter;
 
   // Set document title
   if (to.meta.title) {
@@ -89,8 +90,8 @@ router.beforeEach((to, from, next) => {
     return next({ name: 'Login', query: { redirect: to.fullPath } });
   }
 
-  // Guard for pages requiring admin role
-  if (to.meta.requiresAdmin && !isAdmin) {
+  // Guard for pages requiring admin/recruiter role
+  if (to.meta.requiresAdmin && !isAdmin && !isRecruiter) {
     return next({ name: 'Home' });
   }
 

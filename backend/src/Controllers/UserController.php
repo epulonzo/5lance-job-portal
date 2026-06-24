@@ -109,6 +109,27 @@ class UserController
         return Responder::json($response, $updatedUser);
     }
 
+    /** GET /api/users — list all user accounts (JWT Admin only) */
+    public function index(Request $request, Response $response): Response
+    {
+        $jwtUser = $request->getAttribute('jwt_user');
+
+        // Only admin can view all users
+        if (($jwtUser['role'] ?? '') !== 'admin') {
+            return Responder::error($response, 'Only administrators can view all users.', 403);
+        }
+
+        $stmt = $this->db->prepare('SELECT user_id, name, email, role, title, location, created_at FROM users ORDER BY created_at DESC');
+        $stmt->execute();
+        $users = $stmt->fetchAll();
+
+        foreach ($users as &$user) {
+            $user['user_id'] = (int) $user['user_id'];
+        }
+
+        return Responder::json($response, $users);
+    }
+
     /** DELETE /api/users/{id} — deactivate/delete a user account (JWT Admin only) */
     public function delete(Request $request, Response $response, array $args): Response
     {
