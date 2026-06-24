@@ -46,16 +46,7 @@ const handleLogin = async () => {
   }
 };
 
-// Autofill Helpers
-const autofillCandidate = () => {
-  email.value = 'adam@5lance.com';
-  password.value = 'Password123';
-};
 
-const autofillRecruiter = () => {
-  email.value = 'admin@5lance.com';
-  password.value = 'Password123';
-};
 </script>
 
 <template>
@@ -110,26 +101,7 @@ const autofillRecruiter = () => {
           </Button>
         </form>
 
-        <!-- Demo Autofill Helper Panel -->
-        <div class="p-4 bg-slate-50 dark:bg-slate-800/50 rounded-2xl border border-slate-100 dark:border-slate-800 text-left space-y-2.5">
-          <p class="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">Reviewer Autofill Options</p>
-          <div class="flex gap-2">
-            <button
-              type="button"
-              @click="autofillCandidate"
-              class="flex-1 py-1.5 px-3 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:border-brand-500 rounded-lg text-xs font-bold text-slate-600 dark:text-slate-300 hover:text-brand-600 cursor-pointer transition-all"
-            >
-              Candidate Profile
-            </button>
-            <button
-              type="button"
-              @click="autofillRecruiter"
-              class="flex-1 py-1.5 px-3 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:border-brand-500 rounded-lg text-xs font-bold text-slate-600 dark:text-slate-300 hover:text-brand-600 cursor-pointer transition-all"
-            >
-              Recruiter Profile
-            </button>
-          </div>
-        </div>
+
 
         <!-- Footnote link -->
         <p class="text-xs font-semibold text-slate-400 text-center">
